@@ -1,10 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Tue Nov 19 19:28:21 2019
-
-@author: lxh
-"""
 
 import os
 import sys
@@ -37,10 +32,6 @@ COCO_MODEL_PATH = os.path.join(MODEL_DIR ,"mask_rcnn_coco.h5")
 # Download COCO trained weights from Releases if needed
 if not os.path.exists(COCO_MODEL_PATH):
     utils.download_trained_weights(COCO_MODEL_PATH)
-    print("cuiwei***********************")
-
-# Directory of images to run detection on
-IMAGE_DIR = os.path.join(ROOT_DIR, "images")
 
 class InferenceConfig(coco.CocoConfig):
     # Set batch size to 1 since we'll be running inference on
@@ -77,38 +68,51 @@ class_names = ['BG', 'person', 'bicycle', 'car', 'motorcycle', 'airplane',
                'sink', 'refrigerator', 'book', 'clock', 'vase', 'scissors',
                'teddy bear', 'hair drier', 'toothbrush']
 
-# 获得文件夹下所有图片的路径
-img_path = gb.glob("./images/*.jpg")
-# 对于每一张图片进行操作
-for path in img_path:
-    image = image = skimage.io.imread(path)
-    # 输出的.mask文件路径
-    mask_path = path[0:len(path)-4] + ".mask"
-    # 实例分割
-    results = model.detect([image], verbose=1)
-    r = results[0]
-    # masks有三维，分别是检测对象数目，图像高度，图像宽度，
-    # 对于每一个检测对象，都是一个图像高度×图像宽度的二维数组，像素点属于对象则值为true，不属于对象则值为false
-    masks = r['masks'].transpose(2,0,1)
-    # class_ids存放了检测对象的类别id，结合class_names可以获得类别名
-    class_ids = r['class_ids']
-    # 打开.mask文件，如果不存在就创建该文件
-    with open(mask_path, 'w') as f:
-        # 写入第一行：图像高度 图像宽度 检测对象的数目
-        f.write(str(masks.shape[1])+" "+str(masks.shape[2])+" "+str(masks.shape[0])+"\n")
-        for i in range(len(class_ids)):
-            # 获得并写入检测对象的类别，每一个占一行
-            x = class_names[class_ids[i]]
-            f.write(str(x)+"\n")
-        # 创建一个和图像大小相同的数组，内容全部为0
-        maskresult = np.zeros([masks.shape[1],masks.shape[2]], dtype=np.int8)
-        # 对于每一个检测对象，修改对应数组maskresult中的值
-        for i in range(len(class_ids)):
-            maskresult = maskresult + masks[i] * (i+1)
-        # 背景值改为-1，数组maskresult追加写入mask_path文件
-        maskresult[maskresult==0] = -1
-        np.savetxt(f, maskresult, fmt='%d', delimiter=' ', newline='\n')
-    visualize.display_instances(image, r['rois'], r['masks'], r['class_ids'], 
-                            class_names, r['scores'])
-    print("Done!")
+def main(args):
+    # 获得文件夹下所有图片的路径
+    img_path = gb.glob(args.path + "/image_0/*.png")
+    img_path.sort()
+    # 创建存放mask文件的文件夹
+    folder_path = args.path + "/mask/"
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)
+    # 对每一张图片进行操作
+    for path in img_path:
+        image = skimage.io.imread(path)
+        # 输出的.mask文件路径
+        mask_path = folder_path + path[-10:-4] + ".mask"
+        # 实例分割
+        results = model.detect([image], verbose=1)
+        r = results[0]
+        # masks有三维，分别是检测对象数目，图像高度，图像宽度，
+        # 对于每一个检测对象，都是一个图像高度×图像宽度的二维数组，像素点属于对象则值为true，不属于对象则值为false
+        masks = r['masks'].transpose(2,0,1)
+        # class_ids存放了检测对象的类别id，结合class_names可以获得类别名
+        class_ids = r['class_ids']
+        # 打开.mask文件，如果不存在就创建该文件
+        with open(mask_path, 'w') as f:
+            # 写入第一行：图像高度 图像宽度 检测对象的数目
+            f.write(str(masks.shape[1])+" "+str(masks.shape[2])+" "+str(masks.shape[0])+"\n")
+            for i in range(len(class_ids)):
+                # 获得并写入检测对象的类别，每一个占一行
+                x = class_names[class_ids[i]]
+                f.write(str(x)+"\n")
+            # 创建一个和图像大小相同的数组，内容全部为0
+            maskresult = np.zeros([masks.shape[1],masks.shape[2]], dtype=np.int8)
+            # 对于每一个检测对象，修改对应数组maskresult中的值
+            for i in range(len(class_ids)):
+                maskresult = maskresult + masks[i] * (i+1)
+            # 背景值改为-1，数组maskresult追加写入mask_path文件
+            maskresult[maskresult==0] = -1
+            np.savetxt(f, maskresult, fmt='%d', delimiter=' ', newline='\n')
+        # visualize.display_instances(image, r['rois'], r['masks'], r['class_ids'], class_names, r['scores'])
+        print(path + "\tDone!")
+    print("all images finished")
+
+import argparse
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('path', type=str, help='Deal path')
+    args = parser.parse_args()
+    main(args)
 
