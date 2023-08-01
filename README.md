@@ -10,6 +10,6 @@ get_mask.py将会读取目标文件夹image_0下的全部.png图像，新建mask
 label2objectpose.py修改自 https://github.com/ssmem/vdo-slam-data-preprocess 中的label2objectpose.py  
 用于生成vdoslam需要的object_pose.txt和time.txt文件，直接使用python运行，下面是一个示例：
 ```shell
-python label2objectpose.py /home/slam/Downloads/kitti-tracking-dataset/0001
+python label2objectpose.py /home/usr_name/Downloads/kitti-tracking-dataset/0001
 ```
 label2objectpose.py会读取目标文件下.txt文件，生成并保存需要的object_pose.txt和time.txt
