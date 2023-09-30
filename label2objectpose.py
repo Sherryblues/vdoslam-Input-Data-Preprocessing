@@ -14,7 +14,7 @@ class_names = ["Car", "Cyclist", "Pedestrian", "Tram",
 def main(args):
     # 如果存在之前生成的object_pose.txt或者time.txt，删除它们
     object_pose_path = args.path + "/object_pose.txt"
-    time_path = args.path + "/time.txt"
+    time_path = args.path + "/times.txt"
     if os.path.isfile(object_pose_path):
         os.remove(object_pose_path)
         print("remove "+object_pose_path)
