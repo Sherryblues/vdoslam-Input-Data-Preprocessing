@@ -47,7 +47,7 @@ def main(args):
                 time_t = Decimal(time).quantize(Decimal("0.000001"), rounding = "ROUND_HALF_UP")
                 twf.write(str(time_t)+'\n')
                 # 两帧图片的时间间隔，自己定义，KITTI好像没有明确告知？
-                time += 0.05
+                time += 0.1
 
 
 if __name__ == "__main__":
